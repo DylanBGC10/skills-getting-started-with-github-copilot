@@ -7,7 +7,7 @@ for extracurricular activities at Mergington High School.
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 import os
 from pathlib import Path
 
@@ -107,3 +107,44 @@ def signup_for_activity(activity_name: str, email: str):
     # Add student
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
+
+
+@app.get("/activities/cards", response_class=HTMLResponse)
+def get_activity_cards():
+    """Generate HTML for activity cards with participants"""
+    html_content = """
+    <html>
+        <head>
+            <title>Activity Cards</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+                .card h2 { margin-top: 0; }
+                .card ul { padding-left: 20px; }
+                .card ul li { margin-bottom: 4px; }
+            </style>
+        </head>
+        <body>
+            <h1>Extracurricular Activities</h1>
+    """
+    for activity_name, details in activities.items():
+        html_content += f"""
+            <div class="card">
+                <h2>{activity_name}</h2>
+                <p><strong>Description:</strong> {details['description']}</p>
+                <p><strong>Schedule:</strong> {details['schedule']}</p>
+                <p><strong>Max Participants:</strong> {details['max_participants']}</p>
+                <p><strong>Participants:</strong></p>
+                <ul>
+        """
+        for participant in details["participants"]:
+            html_content += f"<li>{participant}</li>"
+        html_content += """
+                </ul>
+            </div>
+        """
+    html_content += """
+        </body>
+    </html>
+    """
+    return html_content
